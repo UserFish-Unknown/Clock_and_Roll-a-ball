@@ -13,6 +13,8 @@ public class PlayerController : MonoBehaviour
     public float speed = 0;
     public TextMeshProUGUI countText;
     public GameObject winTextObject;
+    public GameObject timerObject;
+    public float timer;
 
     // retrieves the Rigidbody component attached to the player object
     void Start()
@@ -21,6 +23,7 @@ public class PlayerController : MonoBehaviour
         count = 0;
         SetCountText();
         winTextObject.SetActive(false);
+        timerObject.SetActive(true);
     }
 
     // called when the player moves
@@ -35,13 +38,31 @@ public class PlayerController : MonoBehaviour
     {
         countText.text = "Count: " + count.ToString();
 
+        // check if the player has collected 10 pickups and display the win text if so
         if (count >= 10)
         {
             winTextObject.SetActive(true);
+            // destroy all enemies objects in the scene when the player wins
             foreach (GameObject enemy in GameObject.FindGameObjectsWithTag("Enemy"))
             {
                 Destroy(enemy);
             }
+        }
+    }
+
+    void SetTimerText(float time)
+    {
+        // sets timer that decreases over time and displays it on the screen
+        timerObject.GetComponent<TextMeshProUGUI>().text = "Time: " + time.ToString("F0");
+        timer -= Time.deltaTime;
+
+        if (timer <= 0)
+        {
+            timer = 0;
+            // sets the lose text when the timer reaches 0
+            winTextObject.gameObject.SetActive(true);
+            winTextObject.GetComponent<TextMeshProUGUI>().text = "You Lose!";
+            Destroy(gameObject);
         }
     }
 
@@ -53,6 +74,12 @@ public class PlayerController : MonoBehaviour
         
         // apply a force to the Rigidbody to move the player
         rb.AddForce(movement * speed);
+
+        // update the timer text every frame
+        if (winTextObject.activeSelf == false)
+        {
+            SetTimerText(timer);
+        }
     }
 
     void OnTriggerEnter(Collider other)
